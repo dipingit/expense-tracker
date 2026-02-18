@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "Category" ADD COLUMN     "name" TEXT NOT NULL DEFAULT 'default category';
+
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "password" TEXT NOT NULL DEFAULT 'changeme',
+ADD COLUMN     "refreshTokens" TEXT[] DEFAULT ARRAY[]::TEXT[],
+ADD COLUMN     "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ALTER COLUMN "name" SET DEFAULT 'changeme';
