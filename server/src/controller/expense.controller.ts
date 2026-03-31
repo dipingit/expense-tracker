@@ -28,6 +28,7 @@ export const createExpense = async(req: Request, res: Response) => {
     }
 }
 
+//get all expenses
 export const getAllExpenses = async(req: Request, res: Response) => {
     try{
 
@@ -47,6 +48,7 @@ export const getAllExpenses = async(req: Request, res: Response) => {
         res.status(500).json({error: error.message});
     }
 }
+//get expense by ID
 export const getExpenseByID = async(req: Request, res: Response) => {
     try{
         const { id } = req.params;
