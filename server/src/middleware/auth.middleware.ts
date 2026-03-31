@@ -56,15 +56,15 @@ export const protect = (req: Request, res: Response, next: NextFunction): void =
  * Validate Bearer token format
  * Helper middleware to ensure proper Authorization header format
  */
-export const validateBearerFormat = (req: Request, res: Response, next: NextFunction): void => {
+export const validateBearerFormat = (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers.authorization;
 
     if (authHeader && !authHeader.startsWith('Bearer ')) {
-        res.status(400).json({
+        return res.status(400).json({
             error: 'Bad Request',
             message: 'Authorization header must use Bearer scheme. Format: Bearer <token>',
         });
-        return;
+        
     }
 
     next();
