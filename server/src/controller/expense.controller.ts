@@ -4,15 +4,19 @@ import {prisma} from '../prisma';
 //Create - Add a new expense
 export const createExpense = async(req: Request, res: Response) => {
     try{
-        const {amount, description, categoryId, userId} = req.body;
-        // const userId = req.userId; // From auth middleware
+        const userId = req.userId; // From auth middleware
+        if (!userId) {
+            return res.status(401).json({ error: "User context missing" });
+        }
+        
+        const {amount, description, categoryId} = req.body;
         
         const expense = await prisma.expense.create({
             data:{
                 amount,
                 description: description || null,
                 categoryId,
-                userId,   
+                userId
             },
             include: {
                 category: true,

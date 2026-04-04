@@ -62,8 +62,7 @@ export const createExpenseSchema = z.object({
     body: z.object({
         amount: z.number().min(1, 'Amount must be greater than 0'),
         description: z.string().optional(),
-        categoryId: z.number().int().min(1, 'Category ID is required'),
-        userId: z.number().int().min(1, 'user id is required'),
+        categoryId: z.number().int().min(1, 'Category ID is required')
     }),
     params: z.record(z.string(), z.string()).optional(),
     query: z.record(z.string(), z.string()).optional(),
