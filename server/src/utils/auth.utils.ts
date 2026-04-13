@@ -25,7 +25,7 @@ validateSecrets();
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET as Secret;
 const JWT_REFRESH_SECRET: Secret = process.env.JWT_REFRESH_SECRET as Secret;
-const ACCESS_TOKEN_EXPIRY = '15m';
+const ACCESS_TOKEN_EXPIRY = '5h';
 const REFRESH_TOKEN_EXPIRY = '7d';
 
 // Hash password
