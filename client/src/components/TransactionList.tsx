@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import { getCategoryIcon, getCategoryColor } from "../constants/categoryIcons";
 
@@ -11,9 +11,22 @@ interface Expense{
 }
 const TransactionList = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
-    const monthlyTotal = expenses.reduce((acc, item) => acc+ Number(item.amount), 0);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    
+    const monthlyTotal = useMemo(() => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        return expenses.reduce((sum, expense) => {
+            const expenseDate = new Date(expense.createdAt || '');
+            if (expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear) {
+                return sum + Number(expense.amount);
+            }
+            return sum;
+        }, 0);
+    }, [expenses]);
     
     useEffect(() => {
         const fetchExpenses = async() => {

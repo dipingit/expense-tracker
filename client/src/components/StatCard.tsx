@@ -43,7 +43,7 @@ const StatCard = () => {
         const fetchStatData = async () => {
             try{
                 const response = await api.get('/expenses');
-                const expenseData: Expense[] = response.data.data; 
+                const expenseData: Expense[] = response.data.data;
                 setTransactions(expenseData);
                 setError(null);
             }catch(err: any){
@@ -56,9 +56,20 @@ const StatCard = () => {
         fetchStatData();
     }, []);
 
-    const totalSpent = useMemo(() => transactions.reduce((sum, t) => sum + t.amount, 0), [transactions])
-    const average = useMemo(() => transactions.length > 0 ? totalSpent/transactions.length : 0, [transactions, totalSpent]);
-    const highest = useMemo(() => transactions.length > 0 ? Math.max(...transactions.map((t) => t.amount)) : 0, [transactions])
+    const getMonthlyExpenses = () => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        return transactions.filter(expense => {
+            const expenseDate = new Date(expense.createdAt || '');
+            return expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear;
+        });
+    };
+
+    const monthlyExpenses = useMemo(() => getMonthlyExpenses(), [transactions]);
+    const totalSpent = useMemo(() => monthlyExpenses.reduce((sum, t) => sum + t.amount, 0), [monthlyExpenses]);
+    const average = useMemo(() => monthlyExpenses.length > 0 ? totalSpent/monthlyExpenses.length : 0, [monthlyExpenses, totalSpent]);
+    const highest = useMemo(() => monthlyExpenses.length > 0 ? Math.max(...monthlyExpenses.map((t) => t.amount)) : 0, [monthlyExpenses]);
 
     if (loading) {
         return (
@@ -78,7 +89,7 @@ const StatCard = () => {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-7 animate-fade-in">
             <StatCardItem icon={<Wallet size={18} />} value={fmt(totalSpent)} label="Total Spent" sublabel="This month" gradient="blue" />
-            <StatCardItem icon={<ShoppingCart size={18} />} value={String(transactions.length)} label="Expenses" sublabel={`${transactions.length} transaction${transactions.length !== 1 ? "s" : ""}`} gradient="purple" />
+            <StatCardItem icon={<ShoppingCart size={18} />} value={String(monthlyExpenses.length)} label="Expenses" sublabel={`${monthlyExpenses.length} transaction${monthlyExpenses.length !== 1 ? "s" : ""}`} gradient="purple" />
             <StatCardItem icon={<TrendingUp size={18} />} value={fmt(average)} label="Average" sublabel="Per expense" gradient="pink" />
             <StatCardItem icon={<DollarSign size={18} />} value={fmt(highest)} label="Highest" sublabel="Single expense" gradient="orange" />
         </div>
