@@ -1,10 +1,12 @@
-import CategoryDistribution from "./components/categoryDistribution";
-import MonthlySpending from "./components/monthlySpending";
+import CategoryDistribution from "./components/CategoryDistribution";
+import MonthlySpending from "./components/MonthlySpending";
+import StatCard from "./components/statCard";
 import TransactionList from "./components/TransactionList";
 
 function App() {
   return (
     <div className="p-10">
+      <StatCard></StatCard>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-7">
         <div className="lg:col-span-2 animate-fade-in">
           <MonthlySpending/>
