@@ -20,7 +20,6 @@ export const createExpense = async(req: Request, res: Response) => {
             },
             include: {
                 category: true,
-                user: true,
             },
         });
         res.status(201).json({message: 'Expense created successfully!', data: expense});
@@ -42,7 +41,6 @@ export const getAllExpenses = async(req: Request, res: Response) => {
         const expenses = await prisma.expense.findMany({
             where: { userId: userId },
             include:{
-                user: true,
                 category: true
             }
         });
@@ -62,7 +60,6 @@ export const getExpenseByID = async(req: Request, res: Response) => {
         const expense = await prisma.expense.findFirst({
             where: { id: parseInt(id), userId: userId },
             include:{
-                user: true,
                 category: true,
             }
         });
