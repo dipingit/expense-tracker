@@ -9,6 +9,7 @@ interface Expense{
     category:{name: string},
     createdAt?: string 
 }
+
 const TransactionList = () => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
@@ -81,7 +82,7 @@ const TransactionList = () => {
                                 <p className="font-semibold text-sm text-[#1e293b]">{item.description}</p>
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <span className="badge badge-sm badge-outline text-[10px] py-2">{item.category.name}</span>
-                                    <span className="text-[11px] text-[#1e293b]/40">
+                                    <span className="text-[11px] text-[#1e293b]/60">
                                         {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Today'}
                                     </span>
                                 </div>

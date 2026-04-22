@@ -9,8 +9,8 @@ const Navbar = () => {
         <div>
             <div className="flex items-center justify-between mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-base-content tracking-tight">Expense Tracker</h1>
-                    <p className="text-base-content/50 text-sm mt-1">Manage your finances with ease</p>
+                    <h1 className="text-3xl font-bold text-base-content tracking-tight">Spendly</h1>
+                    <p className="text-base-content text-sm mt-1">Track smarter. Spend better.</p>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
