@@ -130,6 +130,10 @@ const CategoryDistribution = () => {
         year: "numeric",
     });
 
+    const currentDate = new Date();
+    const isCurrentMonth = selectedMonth.getMonth() === currentDate.getMonth() && 
+                          selectedMonth.getFullYear() === currentDate.getFullYear();
+
     if(loading) { return (
             <div className="h-[300px] flex items-center justify-center">
                 Loading chart...
@@ -160,9 +164,11 @@ const CategoryDistribution = () => {
                         <button
                             onClick={handleNextMonth}
                             className="btn btn-ghost btn-sm btn-circle"
-                        >
+                            disabled={isCurrentMonth}
+                        > 
                             <ChevronRight size={18} />
-                        </button>
+                        </button> 
+                       
                     </div>
                 </div>
                 <ResponsiveContainer width="100%" height={250}>
