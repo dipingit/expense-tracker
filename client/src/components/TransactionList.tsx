@@ -50,12 +50,12 @@ const TransactionList = () => {
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-[#e2e8f0] mb-24">
             <div className="flex items-center justify-between mb-4">
                 <div>
-                    <h2 className="text-lg font-bold text-[#1e293b]">Recent Transactions</h2>
-                    <p className="text-xs text-[#1e293b]/50">Total List: {expenses.length} items</p>
+                    <h2 className="text-lg font-bold text-[#1e293b]">Transactions</h2>
+                    <p className="text-xs text-[#1e293b]">{expenses.length} total</p>
                 </div>
                 <div className="flex items-center">
                     <div className="badge badge-neutral badge-lg font-bold px-4 py-3 text-sm">
-                        ${monthlyTotal.toFixed(2)}
+                        {new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date())} total: ${monthlyTotal.toFixed(2)}
                     </div>
                 </div>
             </div>

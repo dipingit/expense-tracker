@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import api from "../api/axios";
+import { ToastContainer, toast, Bounce } from 'react-toastify';
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -57,6 +58,9 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
         categoryId: categoryId,
       });
 
+      // Show success toast
+      toast.success("Expense Added Successfully!");
+
       // Reset form
       setDescription("");
       setAmount("");
@@ -76,99 +80,113 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
   };
 
   return (
-    <dialog className={`modal ${isOpen ? "modal-open" : ""}`}>
-      <div className="modal-box rounded-2xl max-w-md">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="font-bold text-xl text-base-content">Add Expense</h3>
-          <button 
-            className="btn btn-ghost btn-sm btn-circle" 
-            onClick={onClose}
-            disabled={loading}
-          >
-            <X size={18} />
-          </button>
-        </div>
-
-        {error && (
-          <div className="alert alert-error mb-4">
-            <span>{error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Description</span>
-            </label>
-            <input
-              type="text"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="e.g. Grocery run"
-              className="input input-bordered w-full"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Amount ($)</span>
-            </label>
-            <input
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="0.00"
-              min="0.01"
-              step="0.01"
-              className="input input-bordered w-full"
-              required
-              disabled={loading}
-            />
-          </div>
-
-          <div className="form-control">
-            <label className="label">
-              <span className="label-text font-semibold">Category</span>
-            </label>
-            <select
-              value={categoryId}
-              onChange={(e) => setCategoryId(Number(e.target.value))}
-              className="select select-bordered w-full"
-              disabled={loading || categories.length === 0}
-            >
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="modal-action mt-2">
+    <>
+      <dialog className={`modal ${isOpen ? "modal-open" : ""}`}>
+        <div className="modal-box rounded-2xl max-w-md">
+          {/* Header */}
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="font-bold text-xl text-base-content">Add Expense</h3>
             <button 
-              type="button" 
-              className="btn btn-ghost" 
+              className="btn btn-ghost btn-sm btn-circle" 
               onClick={onClose}
               disabled={loading}
             >
-              Cancel
-            </button>
-            <button 
-              type="submit" 
-              className="btn btn-primary flex-1"
-              disabled={loading}
-            >
-              {loading ? "Adding..." : "Add Expense"}
+              <X size={18} />
             </button>
           </div>
-        </form>
-      </div>
-      {/* Backdrop */}
-      <div className="modal-backdrop" onClick={onClose} />
-    </dialog>
+
+          {error && (
+            <div className="alert alert-error mb-4">
+              <span>{error}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold">Description</span>
+              </label>
+              <input
+                type="text"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="e.g. Grocery run"
+                className="input input-bordered w-full"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold">Amount ($)</span>
+              </label>
+              <input
+                type="number"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                placeholder="0.00"
+                min="0.01"
+                step="0.01"
+                className="input input-bordered w-full"
+                required
+                disabled={loading}
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text font-semibold">Category</span>
+              </label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(Number(e.target.value))}
+                className="select select-bordered w-full"
+                disabled={loading || categories.length === 0}
+              >
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="modal-action mt-2">
+              <button 
+                type="button" 
+                className="btn btn-ghost" 
+                onClick={onClose}
+                disabled={loading}
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                className="btn btn-primary flex-1"
+                disabled={loading}
+              >
+                {loading ? "Adding..." : "Add Expense"}
+              </button>
+            </div>
+          </form>
+        </div>
+        {/* Backdrop */}
+        <div className="modal-backdrop" onClick={onClose} />
+      </dialog>
+      <ToastContainer
+        position="top-center"
+        autoClose={2000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}/>
+    </>
   );
 };
 
