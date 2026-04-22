@@ -40,6 +40,9 @@ export const getAllExpenses = async(req: Request, res: Response) => {
 
         const expenses = await prisma.expense.findMany({
             where: { userId: userId },
+            orderBy: {
+                createdAt: 'desc', // sort for the recent transactions
+            },
             include:{
                 category: true
             }
