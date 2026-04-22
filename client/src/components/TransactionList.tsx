@@ -82,7 +82,7 @@ const TransactionList = () => {
                                 <div className="flex items-center gap-2 mt-0.5">
                                     <span className="badge badge-sm badge-outline text-[10px] py-2">{item.category.name}</span>
                                     <span className="text-[11px] text-[#1e293b]/40">
-                                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'Today'}
+                                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Today'}
                                     </span>
                                 </div>
                             </div>
