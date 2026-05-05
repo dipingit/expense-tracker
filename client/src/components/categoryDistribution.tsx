@@ -58,7 +58,11 @@ const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     return null;
 };
 
-const CategoryDistribution = () => {
+interface CategoryDistributionProps {
+    refreshTrigger?: number;
+}
+
+const CategoryDistribution = ({ refreshTrigger = 0 }: CategoryDistributionProps) => {
     const [data, setData] = useState<CategoryData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -115,7 +119,7 @@ const CategoryDistribution = () => {
         };
 
         fetchCategoryData();
-    }, [selectedMonth]);
+    }, [selectedMonth, refreshTrigger]);
 
     const handlePreviousMonth = () => {
         setSelectedMonth(new Date(selectedMonth.getFullYear(), selectedMonth.getMonth() - 1));

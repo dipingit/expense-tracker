@@ -35,7 +35,11 @@ const StatCardItem = ({ icon, value, label, sublabel, gradient }: StatCardItemPr
   </div>
 );
 
-const StatCard = () => {
+interface StatCardProps {
+    refreshTrigger?: number;
+}
+
+const StatCard = ({ refreshTrigger = 0 }: StatCardProps) => {
     const [transactions, setTransactions] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -54,7 +58,7 @@ const StatCard = () => {
             }
         };
         fetchStatData();
-    }, []);
+    }, [refreshTrigger]);
 
     const getMonthlyExpenses = () => {
         const now = new Date();

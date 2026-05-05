@@ -10,7 +10,11 @@ interface Expense{
     createdAt?: string 
 }
 
-const TransactionList = () => {
+interface TransactionListProps {
+    refreshTrigger?: number;
+}
+
+const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -36,13 +40,13 @@ const TransactionList = () => {
                 console.log(expenses);
                 setExpenses(expenses.data.data);
             }catch(error: any){
-                setError(error.response?.data?.message || 'Failed to fetch expenses' );
+                setError(error?.response?.data?.message || 'Failed to fetch expenses' );
             }finally{
                 setLoading(false);
             }
         }
         fetchExpenses();
-    }, []);
+    }, [refreshTrigger]);
 
     if(loading) return <p className="p-4">Loading your expenses...</p>
     if(error) return <p className="p-4">{error}</p>

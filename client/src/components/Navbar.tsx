@@ -2,8 +2,16 @@ import { useState } from "react";
 import {Plus} from 'lucide-react';
 import AddExpenseModal from "./AddExpenseModal";
 
-const Navbar = () => {
+interface NavbarProps {
+  onExpenseAdded?: () => void;
+}
+
+const Navbar = ({ onExpenseAdded }: NavbarProps) => {
     const [IsModalOpen, setIsModalOpen] = useState(false);
+
+    const handleExpenseAdded = () => {
+      onExpenseAdded?.();
+    };
 
     return (
         <div>
@@ -26,6 +34,7 @@ const Navbar = () => {
             <AddExpenseModal 
                 isOpen={IsModalOpen} 
                 onClose={() => setIsModalOpen(false)}
+                onExpenseAdded={handleExpenseAdded}
             />
         </div>
     );

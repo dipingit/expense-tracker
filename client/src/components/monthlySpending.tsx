@@ -39,7 +39,11 @@ const CustomTooltip = ({ active, payload, label }: CustomTooltipProps) => {
     return null;
 };
 
-const MonthlySpendingChart = () => {
+interface MonthlySpendingChartProps {
+    refreshTrigger?: number;
+}
+
+const MonthlySpendingChart = ({ refreshTrigger = 0 }: MonthlySpendingChartProps) => {
     const [data, setData] = useState<MonthlyData[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
@@ -82,7 +86,7 @@ const MonthlySpendingChart = () => {
         };
 
         fetchAndTransformData();
-    }, []);
+    }, [refreshTrigger]);
 
     if (loading) return <div className="h-[300px] flex items-center justify-center">Loading Chart...</div>;
     if (error) return <div className="h-[300px] flex items-center justify-center text-red-500">{error}</div>;
