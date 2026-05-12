@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import { getCategoryIcon, getCategoryColor } from "../constants/categoryIcons";
+import { Edit2, Trash2 } from "lucide-react";
 
 interface Expense{
     id: number,
     amount: number,
     description: string,
-    category:{name: string},
+    category:{name: string, id?: number},
     createdAt?: string 
+}
+
+interface Category {
+    id: number,
+    name: string
 }
 
 interface TransactionListProps {
@@ -16,8 +22,11 @@ interface TransactionListProps {
 
 const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
     const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [editingId, setEditingId] = useState<number | null>(null);
+    const [editForm, setEditForm] = useState({ description: '', amount: '', categoryId: 0 });
     
     const monthlyTotal = useMemo(() => {
         const now = new Date();
@@ -34,19 +43,68 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
     }, [expenses]);
     
     useEffect(() => {
-        const fetchExpenses = async() => {
+        const fetchExpensesAndCategories = async() => {
             try{
-                const expenses = await api.get('/expenses');
-                console.log(expenses);
-                setExpenses(expenses.data.data);
+                const [expensesRes, categoriesRes] = await Promise.all([
+                    api.get('/expenses'),
+                    api.get('/categories')
+                ]);
+                setExpenses(expensesRes.data.data);
+                setCategories(categoriesRes.data.data);
             }catch(error: any){
-                setError(error?.response?.data?.message || 'Failed to fetch expenses' );
+                setError(error?.response?.data?.message || 'Failed to fetch data');
             }finally{
                 setLoading(false);
             }
         }
-        fetchExpenses();
+        fetchExpensesAndCategories();
     }, [refreshTrigger]);
+
+    const handleDelete = async(id: number) => {
+        if(window.confirm('Are you sure you want to delete this expense?')){
+            try{
+                await api.delete(`/expenses/${id}`);
+                setExpenses(expenses.filter(exp => exp.id !== id));
+            }catch(error: any){
+                setError(error?.response?.data?.message || 'Failed to delete expense');
+            }
+        }
+    };
+
+    const handleEditStart = (expense: Expense) => {
+        setEditingId(expense.id);
+        setEditForm({ 
+            description: expense.description, 
+            amount: String(expense.amount),
+            categoryId: expense.category.id || 0
+        });
+    };
+
+    const handleEditCancel = () => {
+        setEditingId(null);
+        setEditForm({ description: '', amount: '', categoryId: 0 });
+    };
+
+    const handleEditSave = async(id: number) => {
+        if(!editForm.description.trim() || !editForm.amount.trim() || editForm.categoryId === 0){
+            setError('Please fill in all fields');
+            return;
+        }
+        try{
+            const response = await api.patch(`/expenses/${id}`, {
+                description: editForm.description,
+                amount: Number(editForm.amount),
+                categoryId: editForm.categoryId
+            });
+            setExpenses(expenses.map(exp => 
+                exp.id === id ? { ...exp, ...response.data.data } : exp
+            ));
+            setEditingId(null);
+            setEditForm({ description: '', amount: '', categoryId: 0 });
+        }catch(error: any){
+            setError(error?.response?.data?.message || 'Failed to update expense');
+        }
+    };
 
     if(loading) return <p className="p-4">Loading your expenses...</p>
     if(error) return <p className="p-4">{error}</p>
@@ -69,11 +127,12 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
                 {expenses.map((item) => {
                     const IconComponent = getCategoryIcon(item.category.name);
                     const iconColor = getCategoryColor(item.category.name);
+                    const isEditing = editingId === item.id;
 
                     return (
                     <div key={item.id} className="flex items-center justify-between py-4">
                         {/* LEFT SIDE: Icon + Details */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3 flex-1">
                             {/* Icon Box */}
                             <div 
                                 className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
@@ -82,22 +141,82 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
                                 <IconComponent size={16} color={iconColor} strokeWidth={2} />
                             </div>
                             {/* transaction details */}
-                            <div>
-                                <p className="font-semibold text-sm text-[#1e293b]">{item.description}</p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                    <span className="badge badge-sm badge-outline text-[10px] py-2">{item.category.name}</span>
-                                    <span className="text-[11px] text-[#1e293b]/60">
-                                        {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Today'}
-                                    </span>
+                            {isEditing ? (
+                                <div className="flex flex-col gap-2 flex-1">
+                                    <input
+                                        type="text"
+                                        value={editForm.description}
+                                        onChange={(e) => setEditForm({...editForm, description: e.target.value})}
+                                        placeholder="Description"
+                                        className="input input-sm input-bordered"
+                                    />
+                                    <input
+                                        type="number"
+                                        value={editForm.amount}
+                                        onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
+                                        placeholder="Amount"
+                                        className="input input-sm input-bordered"
+                                        step="0.01"
+                                    />
+                                    <select
+                                        value={editForm.categoryId}
+                                        onChange={(e) => setEditForm({...editForm, categoryId: Number(e.target.value)})}
+                                        className="select select-sm select-bordered"
+                                    >
+                                        <option value={0}>Select Category</option>
+                                        {categories.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
                                 </div>
-                            </div>
+                            ) : (
+                                <div>
+                                    <p className="font-semibold text-sm text-[#1e293b]">{item.description}</p>
+                                    <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="badge badge-sm badge-outline text-[10px] py-2">{item.category.name}</span>
+                                        <span className="text-[11px] text-[#1e293b]/60">
+                                            {item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'Today'}
+                                        </span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                         {/* right side */}
                         <div className="flex items-center gap-3">
-                            <span className="font-bold text-sm text-[#1e293b]">${item.amount}</span>
-                            <button className="btn btn-ghost btn-xs btn-circle text-[#1e293b]/30 hover:text-red-500">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /></svg>
-                            </button>
+                            {isEditing ? (
+                                <>
+                                    <button 
+                                        onClick={() => handleEditSave(item.id)}
+                                        className="btn btn-sm btn-success text-white"
+                                    >
+                                        Save
+                                    </button>
+                                    <button 
+                                        onClick={handleEditCancel}
+                                        className="btn btn-sm btn-ghost"
+                                    >
+                                        Cancel
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="font-bold text-sm text-[#1e293b]">${item.amount}</span>
+                                    <button 
+                                        onClick={() => handleEditStart(item)}
+                                        className="btn btn-ghost btn-xs btn-circle text-[#1e293b]/30 hover:text-blue-500"
+                                        title="Edit expense"
+                                    >
+                                        <Edit2 size={14} />
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(item.id)}
+                                        className="btn btn-ghost btn-xs btn-circle text-[#1e293b]/30 hover:text-red-500"
+                                        title="Delete expense"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
+                                </>
+                            )}
                         </div>
                     </div>
                     );
