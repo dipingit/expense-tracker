@@ -24,7 +24,10 @@ export const loginSchema = z.object({
 
 export const updateCurrentUserSchema = z.object({
     body: z.object({
+        email: z.string().email('Invalid email address').transform((val) => val.toLowerCase()).optional(),
         name: z.string().optional(),
+    }).refine((data) => Object.keys(data).length > 0, {
+        message: 'At least one field (email or name) must be provided',
     }),
 });
 
