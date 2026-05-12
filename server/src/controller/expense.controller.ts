@@ -83,14 +83,28 @@ export const updateExpense = async(req: Request, res: Response) => {
         if(!userId) return res.status(401).json({error: "Unauthorized"});
         const {amount, description, categoryId} = req.body;
         
+        // Build update data object - only include fields that are provided
+        const updateData: any = {};
+        
+        if (amount !== undefined) {
+            updateData.amount = parseFloat(amount);
+        }
+        if (description !== undefined) {
+            updateData.description = description || null;
+        }
+        if (categoryId !== undefined) {
+            updateData.categoryId = categoryId;
+        }
+        
+        // Check if at least one field is being updated
+        if (Object.keys(updateData).length === 0) {
+            return res.status(400).json({error: 'No fields to update'});
+        }
+        
         // Update the expense
         const updatedExpense = await prisma.expense.update({
             where: { id: parseInt(id), userId: userId },
-            data: {
-                amount: amount ? parseFloat(amount) : undefined,
-                description: description || null,
-                categoryId
-            },
+            data: updateData,
             include: {
                 category: true
             }

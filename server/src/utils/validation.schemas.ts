@@ -31,18 +31,6 @@ export const updateCurrentUserSchema = z.object({
     }),
 });
 
-export const updateUserSchema = z.object({
-    body: z.object({
-        email: z.string().email('Invalid email address').optional(),
-        name: z.string().optional(),
-    }),
-    params: z.object({
-        id: z.string().refine((val) => !isNaN(parseInt(val)), {
-            message: 'ID must be a valid number',
-        }),
-    }),
-});
-
 export const getUserByIdSchema = z.object({
     params: z.object({
         id: z.string().refine((val) => !isNaN(parseInt(val)), {
@@ -70,6 +58,8 @@ export const createExpenseSchema = z.object({
     params: z.record(z.string(), z.string()).optional(),
     query: z.record(z.string(), z.string()).optional(),
 });
+
+export const updateExpenseSchema = createExpenseSchema.partial();
 
 export const getExpenseByIDSchema = z.object({
     params: z.object({
