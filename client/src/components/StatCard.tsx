@@ -10,10 +10,10 @@ interface Expense {
 const fmt = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 const gradientMap = {
-  blue: "bg-[#3B82F6]",
-  purple: "bg-[#8B5CF6]",
-  pink: "bg-[#EC4899]",
-  orange: "bg-[#F97316]",
+    blue: "stat-card-blue",
+    purple: "stat-card-purple",
+    pink: "stat-card-pink",
+    orange: "stat-card-orange",
 };
 
 interface StatCardItemProps {

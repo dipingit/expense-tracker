@@ -4,4 +4,23 @@
 * {
   font-family: "Poppins", sans-serif !important;
 }
+/* Spendly gradient tokens */
+:root {
+  --gradient-blue-purple: linear-gradient(135deg, #4f46e5, #7c3aed);
+  --gradient-purple: linear-gradient(135deg, #7c3aed, #a21caf);
+  --gradient-pink: linear-gradient(135deg, #db2777, #e11d48);
+  --gradient-orange: linear-gradient(135deg, #ea580c, #dc2626);
+  --shadow-stat: 0 8px 30px -8px rgba(99, 102, 241, 0.35);
+}
 
+@layer components {
+  .stat-card-blue   { background: var(--gradient-blue-purple); }
+  .stat-card-purple { background: var(--gradient-purple); }
+  .stat-card-pink   { background: var(--gradient-pink); }
+  .stat-card-orange { background: var(--gradient-orange); }
+
+  .icon-badge {
+    @apply w-10 h-10 rounded-xl flex items-center justify-center;
+    background: rgba(255,255,255,0.2);
+  }
+}

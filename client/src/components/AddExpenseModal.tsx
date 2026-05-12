@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X } from "lucide-react";
 import api from "../api/axios";
-import { ToastContainer, toast, Bounce } from 'react-toastify';
+import { toast } from "react-toastify";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -174,18 +174,6 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
         {/* Backdrop */}
         <div className="modal-backdrop" onClick={onClose} />
       </dialog>
-      <ToastContainer
-        position="top-center"
-        autoClose={2000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick={false}
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-        transition={Bounce}/>
     </>
   );
 };
