@@ -31,23 +31,44 @@ export const createExpense = async(req: Request, res: Response) => {
     }
 }
 
-//get all expenses
+//get all expenses with pagination
 export const getAllExpenses = async(req: Request, res: Response) => {
     try{
-
         const userId = req.userId;
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const page = Math.max(1, parseInt(req.query.page as string) || 1);
+        const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string) || 10));
+        const skip = (page - 1) * limit;
+
+        // Get total count for pagination
+        const totalExpenses = await prisma.expense.count({
+            where: { userId: userId }
+        });
 
         const expenses = await prisma.expense.findMany({
             where: { userId: userId },
             orderBy: {
-                createdAt: 'desc', // sort for the recent transactions
+                createdAt: 'desc',
             },
             include:{
                 category: true
+            },
+            skip,
+            take: limit
+        });
+
+        const totalPages = Math.ceil(totalExpenses / limit);
+
+        res.status(200).json({
+            data: expenses,
+            pagination: {
+                page,
+                limit,
+                totalExpenses,
+                totalPages
             }
         });
-        res.status(200).json({data: expenses});
     }
     catch(error: any){
         res.status(500).json({error: error.message});
@@ -144,6 +165,112 @@ export const deleteExpense = async(req: Request, res: Response) => {
         if(error.code === 'P2025'){
             return res.status(404).json({error: "Expense not found"});
         }
+        res.status(500).json({error: error.message});
+    }
+}
+
+//get dashboard summary
+export const getDashboardSummary = async(req: Request, res: Response) => {
+    try{
+        const userId = req.userId;
+        if(!userId) return res.status(401).json({error: "Unauthorized"});
+
+        const month = parseInt(req.query.month as string) || new Date().getMonth();
+        const year = parseInt(req.query.year as string) || new Date().getFullYear();
+
+        // Get start and end date of the month
+        const startDate = new Date(year, month, 1);
+        const endDate = new Date(year, month + 1, 0, 23, 59, 59);
+
+        // Get all expenses for the month
+        const monthlyExpenses = await prisma.expense.findMany({
+            where: {
+                userId: userId,
+                createdAt: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            include: {
+                category: true
+            }
+        });
+
+        // Calculate summary statistics
+        const totalExpense = monthlyExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+        const numberOfTransactions = monthlyExpenses.length;
+        const averageExpense = numberOfTransactions > 0 ? Math.round(totalExpense / numberOfTransactions) : 0;
+        const highestExpense = monthlyExpenses.length > 0 
+            ? Math.max(...monthlyExpenses.map(e => Number(e.amount))) 
+            : 0;
+
+        // Calculate category distribution
+        const categoryMap = new Map();
+        monthlyExpenses.forEach(expense => {
+            const categoryName = expense.category.name;
+            const currentTotal = categoryMap.get(categoryName) || 0;
+            categoryMap.set(categoryName, currentTotal + Number(expense.amount));
+        });
+
+        const categoryDistribution = Array.from(categoryMap, ([category, total]) => ({
+            category,
+            total: Math.round(total)
+        })).sort((a, b) => b.total - a.total);
+
+        res.status(200).json({
+            data: {
+                totalExpense: Math.round(totalExpense),
+                averageExpense,
+                highestExpense: Math.round(highestExpense),
+                numberOfTransactions,
+                categoryDistribution,
+                month,
+                year
+            }
+        });
+    }catch(error: any){
+        res.status(500).json({error: error.message});
+    }
+}
+
+//get yearly summary for 12 months
+export const getYearlySummary = async(req: Request, res: Response) => {
+    try{
+        const userId = req.userId;
+        if(!userId) return res.status(401).json({error: "Unauthorized"});
+
+        const year = parseInt(req.query.year as string) || new Date().getFullYear();
+        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+        
+        const monthlyData = await Promise.all(
+            months.map(async (_, monthIndex) => {
+                const startDate = new Date(year, monthIndex, 1);
+                const endDate = new Date(year, monthIndex + 1, 0, 23, 59, 59);
+
+                const expenses = await prisma.expense.findMany({
+                    where: {
+                        userId: userId,
+                        createdAt: {
+                            gte: startDate,
+                            lte: endDate
+                        }
+                    }
+                });
+
+                const spending = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+
+                return {
+                    month: months[monthIndex],
+                    spending: Math.round(spending * 100) / 100
+                };
+            })
+        );
+
+        res.status(200).json({
+            data: monthlyData,
+            year
+        });
+    }catch(error: any){
         res.status(500).json({error: error.message});
     }
 }
