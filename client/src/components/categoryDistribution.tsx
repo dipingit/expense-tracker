@@ -72,41 +72,22 @@ const CategoryDistribution = ({ refreshTrigger = 0 }: CategoryDistributionProps)
         const fetchCategoryData = async () => {
             try {
                 setLoading(true);
-                const response = await api.get("/expenses");
-                const expenses: Expense[] = response.data.data;
+                const month = selectedMonth.getMonth();
+                const year = selectedMonth.getFullYear();
+                
+                const response = await api.get(`/dashboard/summary?month=${month}&year=${year}`);
+                const categoryDistribution = response.data.data.categoryDistribution;
 
-                // Filter expenses for the selected month
-                const filteredExpenses = expenses.filter((expense) => {
-                    const expenseDate = new Date(expense.createdAt || "");
-                    return (
-                        expenseDate.getMonth() === selectedMonth.getMonth() &&
-                        expenseDate.getFullYear() === selectedMonth.getFullYear()
-                    );
-                });
-
-                // Aggregate by category
-                const categoryTotals: Record<string, number> = {};
-                let totalAmount = 0;
-
-                filteredExpenses.forEach((expense) => {
-                    const categoryName = expense.category.name;
-                    if (categoryTotals[categoryName]) {
-                        categoryTotals[categoryName] += expense.amount;
-                    } else {
-                        categoryTotals[categoryName] = expense.amount;
-                    }
-                    totalAmount += expense.amount;
-                });
-
-                // Convert to chart format and sort by value descending
-                const chartData = Object.entries(categoryTotals)
-                    .map(([name, value], index) => ({
-                        name,
-                        value: parseFloat(value.toFixed(2)),
-                        percentage: (value / totalAmount) * 100,
+                // Convert to chart format
+                const totalAmount = categoryDistribution.reduce((sum: number, cat: any) => sum + cat.total, 0);
+                const chartData = categoryDistribution
+                    .map((cat: any, index: number) => ({
+                        name: cat.category,
+                        value: parseFloat(cat.total.toFixed(2)),
+                        percentage: totalAmount > 0 ? (cat.total / totalAmount) * 100 : 0,
                         color: COLORS[index % COLORS.length],
                     }))
-                    .sort((a, b) => b.value - a.value);
+                    .sort((a: CategoryData, b: CategoryData) => b.value - a.value);
 
                 setData(chartData);
                 setError(null);

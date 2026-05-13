@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import api from "../api/axios";
 import { getCategoryIcon, getCategoryColor } from "../constants/categoryIcons";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface Expense{
@@ -17,6 +17,13 @@ interface Category {
     name: string
 }
 
+interface PaginationMeta {
+    page: number,
+    limit: number,
+    totalExpenses: number,
+    totalPages: number
+}
+
 interface TransactionListProps {
     refreshTrigger?: number;
 }
@@ -28,29 +35,24 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
     const [error, setError] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editForm, setEditForm] = useState({ description: '', amount: '', categoryId: 0 });
-    
-    const monthlyTotal = useMemo(() => {
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        return expenses.reduce((sum, expense) => {
-            const expenseDate = new Date(expense.createdAt || '');
-            if (expenseDate.getMonth() === currentMonth && expenseDate.getFullYear() === currentYear) {
-                return sum + Number(expense.amount);
-            }
-            return sum;
-        }, 0);
-    }, [expenses]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pagination, setPagination] = useState<PaginationMeta>({
+        page: 1,
+        limit: 10,
+        totalExpenses: 0,
+        totalPages: 0
+    });
     
     useEffect(() => {
         const fetchExpensesAndCategories = async() => {
             try{
+                setLoading(true);
                 const [expensesRes, categoriesRes] = await Promise.all([
-                    api.get('/expenses'),
+                    api.get(`/expenses?page=${currentPage}&limit=10`),
                     api.get('/categories')
                 ]);
                 setExpenses(expensesRes.data.data);
+                setPagination(expensesRes.data.pagination);
                 setCategories(categoriesRes.data.data);
             }catch(error: any){
                 setError(error?.response?.data?.message || 'Failed to fetch data');
@@ -59,7 +61,7 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
             }
         }
         fetchExpensesAndCategories();
-    }, [refreshTrigger]);
+    }, [refreshTrigger, currentPage]);
 
     const handleDelete = async(id: number) => {
         if(window.confirm('Are you sure you want to delete this expense?')){
@@ -117,12 +119,7 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
             <div className="flex items-center justify-between mb-4">
                 <div>
                     <h2 className="text-lg font-bold text-[#1e293b]">Transactions</h2>
-                    <p className="text-xs text-[#1e293b]">{expenses.length} total</p>
-                </div>
-                <div className="flex items-center">
-                    <div className="badge badge-neutral badge-lg font-bold px-4 py-3 text-sm">
-                        {new Intl.DateTimeFormat('en-US', { month: 'long' }).format(new Date())} total: ${monthlyTotal.toFixed(2)}
-                    </div>
+                    <p className="text-xs text-[#1e293b]">{pagination.totalExpenses} total</p>
                 </div>
             </div>
 
@@ -224,6 +221,31 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
                     </div>
                     );
                 })}
+            </div>
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between mt-6 pt-4 border-t border-[#e2e8f0]">
+                <div className="text-sm text-[#1e293b]/60">
+                    Page {pagination.page} of {pagination.totalPages}
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        disabled={pagination.page === 1}
+                        className="btn btn-sm btn-outline btn-primary"
+                    >
+                        <ChevronLeft size={16} />
+                        Previous
+                    </button>
+                    <button
+                        onClick={() => setCurrentPage(prev => Math.min(pagination.totalPages, prev + 1))}
+                        disabled={pagination.page === pagination.totalPages}
+                        className="btn btn-sm btn-outline btn-primary"
+                    >
+                        Next
+                        <ChevronRight size={16} />
+                    </button>
+                </div>
             </div>
         </div>
     );

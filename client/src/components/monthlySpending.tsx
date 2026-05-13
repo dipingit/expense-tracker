@@ -10,11 +10,6 @@ import {
 } from "recharts";
 import api from "../api/axios";
 
-interface Expense {
-    amount: number;
-    createdAt: string;
-}
-
 interface MonthlyData {
     month: string;
     spending: number; 
@@ -52,29 +47,12 @@ const MonthlySpendingChart = ({ refreshTrigger = 0 }: MonthlySpendingChartProps)
         const fetchAndTransformData = async () => {
             try {
                 setLoading(true);
-                const response = await api.get("/expenses");
-                const expenses: Expense[] = response.data.data;
-
-                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
                 const currentYear = new Date().getFullYear();
-
-                // initialize an object to hold the sums
-                const monthlyTotals: Record<string, number> = {};
-                months.forEach((m) => (monthlyTotals[m] = 0));
-
-                // aggregate Logic
-                expenses.forEach((expense) => {
-                    const date = new Date(expense.createdAt);
-                    if (date.getFullYear() === currentYear) {
-                        const monthName = months[date.getMonth()];
-                        monthlyTotals[monthName] += Number(expense.amount);
-                    }
-                });
-
-                // convert to recharts format(provides array of objects)
-                const chartData = months.map((m) => ({
-                    month: m,
-                    spending: parseFloat(monthlyTotals[m].toFixed(2)),
+                const response = await api.get(`/dashboard/yearly-summary?year=${currentYear}`);
+                
+                const chartData = response.data.data.map((item: MonthlyData) => ({
+                    month: item.month,
+                    spending: item.spending
                 }));
 
                 setData(chartData);
