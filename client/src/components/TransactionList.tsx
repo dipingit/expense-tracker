@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import api from "../api/axios";
 import { getCategoryIcon, getCategoryColor } from "../constants/categoryIcons";
 import { Edit2, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
 
 interface Expense{
     id: number,
@@ -65,6 +66,7 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
             try{
                 await api.delete(`/expenses/${id}`);
                 setExpenses(expenses.filter(exp => exp.id !== id));
+                toast.success("Transaction deleted!");
             }catch(error: any){
                 setError(error?.response?.data?.message || 'Failed to delete expense');
             }
@@ -101,6 +103,7 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
             ));
             setEditingId(null);
             setEditForm({ description: '', amount: '', categoryId: 0 });
+            toast.success("Transaction updated successfully!");
         }catch(error: any){
             setError(error?.response?.data?.message || 'Failed to update expense');
         }
