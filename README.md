@@ -53,8 +53,9 @@ A full-stack expense tracking application that leverages **Gemini AI** to provid
 - **ts-node-dev** - Development server with hot reload
 
 ## 📁 Project Structure
-
-```
+<details>
+  <summary><b>View Project Structure</b></summary>
+  ```
 expense-tracker/
 ├── client/                          # React Frontend
 │   ├── src/
@@ -104,9 +105,11 @@ expense-tracker/
     ├── .env                              # Environment variables
     └── package.json
 ```
+</details>
 
 ## 🗄️ Database Schema
-
+<details>
+  <summary><b>View Database Schema</b></summary>
 ```typescript
 model User {
   id              Int
@@ -136,44 +139,7 @@ model Expense {
   user            User           @relation(fields: [userId])
 }
 ```
-
-## 🔌 API Endpoints
-
-### Authentication
-```
-POST   /api/auth/register              # Create new account
-POST   /api/auth/login                 # Login user
-POST   /api/auth/refresh-token         # Refresh JWT token
-```
-
-### Expenses
-```
-GET    /api/expenses                   # Get all expenses (paginated)
-GET    /api/expenses/:id               # Get single expense
-POST   /api/expenses                   # Create expense
-PATCH  /api/expenses/:id               # Update expense
-DELETE /api/expenses/:id               # Delete expense
-```
-
-### Analytics & Insights
-```
-GET    /api/dashboard/summary          # Monthly summary (total, avg, highest, distribution)
-GET    /api/dashboard/yearly-summary   # Yearly spending per month
-GET    /api/dashboard/ai-insights      # AI-generated insights (spending trend, top category, unusual expenses, summary)
-```
-
-### Categories
-```
-GET    /api/categories                 # Get all categories
-POST   /api/categories                 # Create category
-DELETE /api/categories/:id             # Delete category
-```
-
-### User
-```
-GET    /api/user/profile               # Get user profile
-PATCH  /api/user/profile               # Update user profile
-```
+</details>
 
 ## 🚀 Getting Started
 
@@ -238,25 +204,6 @@ PATCH  /api/user/profile               # Update user profile
 
    App runs on `http://localhost:5173`
 
-## 📊 Key Features Breakdown
-
-### Dashboard View
-- **Stat Cards**: Total spent, transaction count, average, highest expense
-- **Monthly Spending Chart**: Visualize spending trends across months
-- **Category Distribution**: Pie chart showing spending by category
-- **Transaction List**: Paginated table with search and filter options
-
-### AI Insights Modal
-- **Loading Animation**: Beautiful spinner while Gemini AI analyzes data
-- **Spending Trend**: Shows percentage increase/decrease vs. previous month
-- **Top Category**: Displays highest-spending category with amount
-- **Unusual Expense Alert**: Detects outliers using statistical methods
-- **AI-Generated Summary**: Personalized insights and actionable recommendations
-
-### Add Expense Modal
-- Quick expense creation with category selection
-- Real-time form validation with Zod
-- Toast notifications for success/error feedback
 
 ## 🔐 Authentication Flow
 
@@ -280,7 +227,7 @@ PATCH  /api/user/profile               # Update user profile
 
 **AI Summary Generation:**
 - Aggregates all metrics and expense data
-- Sends contextualized prompt to Gemini 1.5 Flash
+- Sends contextualized prompt to gemini-3-flash-preview
 - Generates personalized insights and budget recommendations
 
 ## 📈 Performance Optimizations
@@ -289,7 +236,6 @@ PATCH  /api/user/profile               # Update user profile
 - **Query Optimization**: Selective field inclusion in Prisma queries
 - **Caching**: React query patterns for data freshness
 - **Lazy Loading**: Components load on demand
-- **Code Splitting**: Vite automatic chunk splitting
 
 ## 🛡️ Security Features
 
@@ -304,7 +250,7 @@ PATCH  /api/user/profile               # Update user profile
 
 ### Gemini API Error
 - Ensure `GEMINI_API_KEY` is set correctly in `.env`
-- Use model name `gemini-1.5-flash-latest`
+- Use model name `gemini-3-flash-preview`
 - Check API quota on Google Cloud Console
 
 ### Database Connection Issues
