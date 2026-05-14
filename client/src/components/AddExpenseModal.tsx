@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { X } from "lucide-react";
+import { X, Lightbulb } from "lucide-react";
 import api from "../api/axios";
 import { toast } from "react-toastify";
+import { suggestCategory } from "../utils/categorySuggestion";
 
 interface AddExpenseModalProps {
   isOpen: boolean;
@@ -21,12 +22,27 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
     }
   }, [isOpen]);
+
+  useEffect(() => {
+    // Suggest category based on description
+    const suggested = suggestCategory(description, categories);
+    setSuggestedCategory(suggested);
+
+    // Auto-select suggested category
+    if (suggested) {
+      const suggestedCat = categories.find(cat => cat.name === suggested);
+      if (suggestedCat) {
+        setCategoryId(suggestedCat.id);
+      }
+    }
+  }, [description, categories]);
 
   const fetchCategories = async () => {
     try {
@@ -64,6 +80,7 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
       // Reset form
       setDescription("");
       setAmount("");
+      setSuggestedCategory(null);
       if (categories.length > 0) {
         setCategoryId(categories[0].id);
       }
@@ -137,11 +154,19 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-semibold">Category</span>
+                {suggestedCategory && (
+                  <span className="label-text-alt text-xs text-primary flex items-center gap-1">
+                    <Lightbulb size={14} />
+                    Suggested
+                  </span>
+                )}
               </label>
               <select
                 value={categoryId}
                 onChange={(e) => setCategoryId(Number(e.target.value))}
-                className="select select-bordered w-full"
+                className={`select select-bordered w-full ${
+                  suggestedCategory ? "select-primary" : ""
+                }`}
                 disabled={loading || categories.length === 0}
               >
                 {categories.map((cat) => (

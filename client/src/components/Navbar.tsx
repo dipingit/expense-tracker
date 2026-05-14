@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Plus, LogOut, User as UserIcon } from 'lucide-react';
+import { Plus, LogOut, User as UserIcon, Lightbulb } from 'lucide-react';
 import { Link, useNavigate } from "react-router";
 import AddExpenseModal from "./AddExpenseModal";
+import AIInsightsModal from "./AIInsightsModal";
 import { useAuth } from "../hooks/useAuth";
 import { toast } from "react-toastify";
 
@@ -11,6 +12,7 @@ interface NavbarProps {
 
 const Navbar = ({ onExpenseAdded }: NavbarProps) => {
     const [IsModalOpen, setIsModalOpen] = useState(false);
+    const [isAIInsightsOpen, setIsAIInsightsOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
     const { user, logout } = useAuth();
     const navigate = useNavigate();
@@ -38,6 +40,14 @@ const Navbar = ({ onExpenseAdded }: NavbarProps) => {
                     <p className="text-base-content text-sm mt-1">Track smarter. Spend better.</p>
                 </div>
                 <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setIsAIInsightsOpen(true)}
+                        className="btn btn-outline gap-2 rounded-xl shadow-md"
+                        style={{ boxShadow: "var(--shadow-stat)" }}
+                    >
+                        <Lightbulb size={16} />
+                        AI Insights
+                    </button>
                     <button
                         onClick={() => setIsModalOpen(true)}
                         className="btn btn-primary gap-2 rounded-xl shadow-md"
@@ -83,6 +93,10 @@ const Navbar = ({ onExpenseAdded }: NavbarProps) => {
                 isOpen={IsModalOpen} 
                 onClose={() => setIsModalOpen(false)}
                 onExpenseAdded={handleExpenseAdded}
+            />
+            <AIInsightsModal
+                isOpen={isAIInsightsOpen}
+                onClose={() => setIsAIInsightsOpen(false)}
             />
         </div>
     );
