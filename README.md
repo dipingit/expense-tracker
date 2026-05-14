@@ -55,7 +55,8 @@ A full-stack expense tracking application that leverages **Gemini AI** to provid
 ## 📁 Project Structure
 <details>
   <summary><b>View Project Structure</b></summary>
-  ```
+
+```
 expense-tracker/
 ├── client/                          # React Frontend
 │   ├── src/
@@ -105,40 +106,43 @@ expense-tracker/
     ├── .env                              # Environment variables
     └── package.json
 ```
+
 </details>
 
 ## 🗄️ Database Schema
 <details>
   <summary><b>View Database Schema</b></summary>
+
 ```typescript
 model User {
-  id              Int
-  email           String         @unique
-  name            String?
-  password        String
-  refreshTokens   String[]
-  expenses        Expense[]
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime
-}
+    id              Int
+    email           String         @unique
+    name            String?
+    password        String
+    refreshTokens   String[]
+    expenses        Expense[]
+    createdAt       DateTime       @default(now())
+    updatedAt       DateTime
+    }
 
-model Category {
-  id              Int
-  name            String
-  expenses        Expense[]
-}
+    model Category {
+    id              Int
+    name            String
+    expenses        Expense[]
+    }
 
-model Expense {
-  id              Int
-  amount          Float
-  description     String?
-  categoryId      Int
-  userId          Int
-  createdAt       DateTime       @default(now())
-  category        Category       @relation(fields: [categoryId])
-  user            User           @relation(fields: [userId])
+    model Expense {
+    id              Int
+    amount          Float
+    description     String?
+    categoryId      Int
+    userId          Int
+    createdAt       DateTime       @default(now())
+    category        Category       @relation(fields: [categoryId])
+    user            User           @relation(fields: [userId])
 }
 ```
+
 </details>
 
 ## 🚀 Getting Started
