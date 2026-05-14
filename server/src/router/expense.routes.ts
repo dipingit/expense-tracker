@@ -1,5 +1,6 @@
 import express from 'express';
 import { createExpense, deleteExpense, getAllExpenses, getExpenseByID, updateExpense, getDashboardSummary, getYearlySummary } from '../controller/expense.controller';
+import { getAIInsights } from '../controller/ai.controller';
 import { validateRequest } from '../middleware/validation.middleware';
 import { createExpenseSchema, getExpenseByIDSchema, updateExpenseSchema } from '../utils/validation.schemas';
 import { protect, validateBearerFormat } from '../middleware/auth.middleware';
@@ -27,5 +28,8 @@ router.get('/dashboard/summary', validateBearerFormat, protect, getDashboardSumm
 
 //get yearly summary
 router.get('/dashboard/yearly-summary', validateBearerFormat, protect, getYearlySummary);
+
+//get AI insights
+router.get('/dashboard/ai-insights', validateBearerFormat, protect, getAIInsights);
 
 export default router;
