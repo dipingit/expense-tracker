@@ -3,22 +3,11 @@ import {
     PieChart,
     Pie,
     Cell,
-    Legend,
     Tooltip,
     ResponsiveContainer,
 } from "recharts";
 import api from "../api/axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-
-interface Expense {
-    amount: number;
-    categoryId: number;
-    category: {
-        id: number;
-        name: string;
-    };
-    createdAt?: string;
-}
 
 interface CategoryData {
     name: string;
@@ -158,7 +147,7 @@ const CategoryDistribution = ({ refreshTrigger = 0 }: CategoryDistributionProps)
                 </div>
                 <ResponsiveContainer width="100%" height={250}>
                     <PieChart>
-                        <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value" label={({ percentage }) => `${percentage.toFixed(0)}%`}>
+                        <Pie data={data} cx="50%" cy="50%" innerRadius={60} outerRadius={90} paddingAngle={3} dataKey="value" label={({ percent }) => `${(percent * 100).toFixed(0)}%`}>
                             {data.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
                             ))}
