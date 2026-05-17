@@ -9,7 +9,7 @@ const app = express();
 
 app.use(express.json());
 app.use(cors());
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use('/api', expenseRoutes);
 app.use('/api', categoryRoutes);
