@@ -90,24 +90,24 @@ export const getAIInsights = async (req: Request, res: Response) => {
 
         // Find top category
         const categoryMap = new Map();
-        expenses.forEach(exp => {
+        expenses.forEach((exp: typeof expenses[0]) => {
             const catName = exp.category.name;
             categoryMap.set(catName, (categoryMap.get(catName) || 0) + Number(exp.amount));
         });
         const topCategory = Array.from(categoryMap.entries())
-            .sort((a, b) => b[1] - a[1])[0] || null;
+            .sort((a: [string, number], b: [string, number]) => b[1] - a[1])[0] || null;
 
         // Find unusual expenses (outliers - above 75th percentile)
-        const amounts = expenses.map(e => Number(e.amount)).sort((a, b) => a - b);
+        const amounts = expenses.map((e: typeof expenses[0]) => Number(e.amount)).sort((a: number, b: number) => a - b);
         const q3Index = Math.ceil(amounts.length * 0.75) - 1;
         const q3 = amounts[q3Index];
         const iqr = q3 - amounts[Math.ceil(amounts.length * 0.25) - 1];
         const outlierThreshold = q3 + iqr;
 
-        const unusualExpense = expenses.find(e => Number(e.amount) > outlierThreshold);
+        const unusualExpense = expenses.find((e: typeof expenses[0]) => Number(e.amount) > outlierThreshold);
 
         // Prepare data for Gemini
-        const totalSpent = expenses.reduce((sum, e) => sum + Number(e.amount), 0);
+        const totalSpent = expenses.reduce((sum: number, e: typeof expenses[0]) => sum + Number(e.amount), 0);
         const avgExpense = Math.round(totalSpent / expenses.length);
         const maxExpense = Math.max(...amounts);
 

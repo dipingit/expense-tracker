@@ -197,25 +197,25 @@ export const getDashboardSummary = async(req: Request, res: Response) => {
         });
 
         // Calculate summary statistics
-        const totalExpense = monthlyExpenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+        const totalExpense = monthlyExpenses.reduce((sum: number, expense: typeof monthlyExpenses[0]) => sum + Number(expense.amount), 0);
         const numberOfTransactions = monthlyExpenses.length;
         const averageExpense = numberOfTransactions > 0 ? Math.round(totalExpense / numberOfTransactions) : 0;
         const highestExpense = monthlyExpenses.length > 0 
-            ? Math.max(...monthlyExpenses.map(e => Number(e.amount))) 
+            ? Math.max(...monthlyExpenses.map((e: typeof monthlyExpenses[0]) => Number(e.amount))) 
             : 0;
 
         // Calculate category distribution
         const categoryMap = new Map();
-        monthlyExpenses.forEach(expense => {
+        monthlyExpenses.forEach((expense: typeof monthlyExpenses[0]) => {
             const categoryName = expense.category.name;
             const currentTotal = categoryMap.get(categoryName) || 0;
             categoryMap.set(categoryName, currentTotal + Number(expense.amount));
         });
 
-        const categoryDistribution = Array.from(categoryMap, ([category, total]) => ({
+        const categoryDistribution = Array.from(categoryMap, ([category, total]: [string, number]) => ({
             category,
             total: Math.round(total)
-        })).sort((a, b) => b.total - a.total);
+        })).sort((a: { category: string; total: number }, b: { category: string; total: number }) => b.total - a.total);
 
         res.status(200).json({
             data: {
@@ -243,7 +243,7 @@ export const getYearlySummary = async(req: Request, res: Response) => {
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         
         const monthlyData = await Promise.all(
-            months.map(async (_, monthIndex) => {
+            months.map(async (_: string, monthIndex: number) => {
                 const startDate = new Date(year, monthIndex, 1);
                 const endDate = new Date(year, monthIndex + 1, 0, 23, 59, 59);
 
@@ -257,7 +257,7 @@ export const getYearlySummary = async(req: Request, res: Response) => {
                     }
                 });
 
-                const spending = expenses.reduce((sum, expense) => sum + Number(expense.amount), 0);
+                const spending = expenses.reduce((sum: number, expense: typeof expenses[0]) => sum + Number(expense.amount), 0);
 
                 return {
                     month: months[monthIndex],
