@@ -11,6 +11,15 @@ app.use(express.json());
 app.use(cors());
 const PORT = process.env.PORT || 3000;
 
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        message: 'Server is running',
+        timestamp: new Date().toISOString()
+    });
+});
+
 app.use('/api', expenseRoutes);
 app.use('/api', categoryRoutes);
 app.use('/api', authRoutes);
