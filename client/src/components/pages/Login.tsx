@@ -45,7 +45,11 @@ const Login = () => {
                         <h1 className="text-2xl font-bold text-base-content">Welcome Back</h1>
                         <p className="text-base-content/50 text-sm">Sign in to Spendly</p>
                     </div>
-
+                    <div className="text-center">
+                        <p>email: demo@gmail.com</p> 
+                        <p>password: demo123</p>
+                    </div>
+                    
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <label className="input input-bordered flex items-center gap-3 bg-base-100 w-full">
                             <Mail size={16} className="text-base-content/40" />
