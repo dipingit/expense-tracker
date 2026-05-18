@@ -117,7 +117,7 @@ export const getAIInsights = async (req: Request, res: Response) => {
         const avgExpense = Math.round(totalSpent / expenses.length);
         const maxExpense = Math.max(...amounts);
 
-        const prompt = `Analyze this monthly expense data and provide 2-3 brief insights (max 150 words total):
+        const prompt = `Analyze this monthly expense data and provide 3 key insights as a bullet point list (max 150 words total):
         
 Total Spent: $${Math.round(totalSpent)}
 Number of Transactions: ${expenses.length}
@@ -127,7 +127,7 @@ Top Category: ${topCategory?.[0] || 'N/A'} ($${Math.round(topCategory?.[1] || 0)
 Spending Trend: ${spendingTrend.trend === 'increase' ? `↑ ${spendingTrend.percentage}% increase` : spendingTrend.trend === 'decrease' ? `↓ ${Math.abs(spendingTrend.percentage)}% decrease` : 'stable'}
 ${unusualExpense ? `Unusual Expense: ${unusualExpense.description || 'Unnamed'} - $${unusualExpense.amount} (${unusualExpense.category.name})` : ''}
 
-Provide actionable, friendly advice based on this data. Be concise and encouraging.`;
+Return ONLY a bulleted list with "• " prefix for each point. No markdown formatting. Be concise and actionable.`;
 
         const model = genAI.getGenerativeModel({ model: 'gemini-3-flash-preview' });
         const result = await model.generateContent(prompt);
