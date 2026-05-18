@@ -83,12 +83,13 @@ export const getAllExpenses = async(req: Request, res: Response) => {
 //get expense by ID
 export const getExpenseByID = async(req: Request, res: Response) => {
     try{
-        const { id } = req.params;
+        const idParam = Array.isArray(req.params.id) ? (req.params.id[0] as string) : (typeof req.params.id === 'string' ? req.params.id : '0');
+        const id = parseInt(idParam);
         const userId = req.userId;
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
         const expense = await prisma.expense.findFirst({
-            where: { id: parseInt(id), userId: userId },
+            where: { id: id, userId: userId },
             include:{
                 category: true,
             }
@@ -105,7 +106,8 @@ export const getExpenseByID = async(req: Request, res: Response) => {
 //update expense
 export const updateExpense = async(req: Request, res: Response) => {
     try {
-        const {id} = req.params;
+        const idParam = Array.isArray(req.params.id) ? (req.params.id[0] as string) : (typeof req.params.id === 'string' ? req.params.id : '0');
+        const id = parseInt(idParam);
         const userId = req.userId;
         if(!userId) return res.status(401).json({error: "Unauthorized"});
         const {amount, description, categoryId} = req.body;
@@ -130,7 +132,7 @@ export const updateExpense = async(req: Request, res: Response) => {
         
         // Update the expense
         const updatedExpense = await prisma.expense.update({
-            where: { id: parseInt(id), userId: userId },
+            where: { id: id, userId: userId },
             data: updateData,
             include: {
                 category: true
@@ -152,18 +154,19 @@ export const updateExpense = async(req: Request, res: Response) => {
 //delete expense
 export const deleteExpense = async(req: Request, res: Response) => {
     try{
-        const { id } = req.params;
+        const idParam = Array.isArray(req.params.id) ? (req.params.id[0] as string) : (typeof req.params.id === 'string' ? req.params.id : '0');
+        const id = parseInt(idParam);
         const userId = req.userId; 
         if(!userId) return res.status(401).json({error: "Unauthorized"});
         
         //check if expense exist
         const isExpenseExist = await prisma.expense.findFirst({
-            where: {id: parseInt(id), userId: userId}
+            where: {id: id, userId: userId}
         });
         if(!isExpenseExist) return res.status(404).json({error: "expense not found"});
         
         await prisma.expense.delete({
-            where: { id: parseInt(id), userId: userId }
+            where: { id: id, userId: userId }
         });
         
         res.status(200).json({message: "Expense deleted successfully"});
