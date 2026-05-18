@@ -248,13 +248,13 @@ export const getDashboardSummary = async(req: Request, res: Response) => {
 //get yearly summary for 12 months
 export const getYearlySummary = async(req: Request, res: Response) => {
     try{
-            ? (req.query.year[0] as string)
-            : (typeof req.query.year === 'string' ? req.query.year : '0');
-        const year = parseInt(yearParam
+        const userId = req.userId;
         if(!userId) return res.status(401).json({error: "Unauthorized"});
 
-        const yearParam = Array.isArray(req.query.year) ? req.query.year[0] : (typeof req.query.year === 'string' ? req.query.year : undefined);
-        const year = parseInt(yearParam || '0') || new Date().getFullYear();
+        const yearParam = Array.isArray(req.query.year) 
+            ? (req.query.year[0] as string)
+            : (typeof req.query.year === 'string' ? req.query.year : '0');
+        const year = parseInt(yearParam) || new Date().getFullYear();
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         
         const monthlyData = await Promise.all(
