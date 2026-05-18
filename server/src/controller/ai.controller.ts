@@ -54,8 +54,14 @@ export const getAIInsights = async (req: Request, res: Response) => {
         const userId = req.userId;
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const month = parseInt(String(req.query.month)) || new Date().getMonth();
-        const year = parseInt(String(req.query.year)) || new Date().getFullYear();
+        const monthParam = Array.isArray(req.query.month) 
+            ? (req.query.month[0] as string)
+            : (typeof req.query.month === 'string' ? req.query.month : '0');
+        const yearParam = Array.isArray(req.query.year) 
+            ? (req.query.year[0] as string)
+            : (typeof req.query.year === 'string' ? req.query.year : '0');
+        const month = parseInt(monthParam) || new Date().getMonth();
+        const year = parseInt(yearParam) || new Date().getFullYear();
 
         const startDate = new Date(year, month, 1);
         const endDate = new Date(year, month + 1, 0, 23, 59, 59);
