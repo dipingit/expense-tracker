@@ -37,8 +37,8 @@ export const getAllExpenses = async(req: Request, res: Response) => {
         const userId = req.userId;
         if (!userId) return res.status(401).json({ error: 'Unauthorized' });
 
-        const page = Math.max(1, parseInt(req.query.page as string) || 1);
-        const limit = Math.max(1, Math.min(100, parseInt(req.query.limit as string) || 10));
+        const page = Math.max(1, parseInt(String(req.query.page)) || 1);
+        const limit = Math.max(1, Math.min(100, parseInt(String(req.query.limit)) || 10));
         const skip = (page - 1) * limit;
 
         // Get total count for pagination
@@ -175,8 +175,8 @@ export const getDashboardSummary = async(req: Request, res: Response) => {
         const userId = req.userId;
         if(!userId) return res.status(401).json({error: "Unauthorized"});
 
-        const month = parseInt(req.query.month as string) || new Date().getMonth();
-        const year = parseInt(req.query.year as string) || new Date().getFullYear();
+        const month = parseInt(String(req.query.month)) || new Date().getMonth();
+        const year = parseInt(String(req.query.year)) || new Date().getFullYear();
 
         // Get start and end date of the month
         const startDate = new Date(year, month, 1);
@@ -239,7 +239,7 @@ export const getYearlySummary = async(req: Request, res: Response) => {
         const userId = req.userId;
         if(!userId) return res.status(401).json({error: "Unauthorized"});
 
-        const year = parseInt(req.query.year as string) || new Date().getFullYear();
+        const year = parseInt(String(req.query.year)) || new Date().getFullYear();
         const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
         
         const monthlyData = await Promise.all(
