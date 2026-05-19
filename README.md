@@ -2,6 +2,22 @@
 
 A full-stack expense tracking application that leverages **Gemini AI** to provide intelligent insights into spending patterns. Track your expenses, visualize spending trends, and get AI-powered recommendations to optimize your budget.
 
+
+## 🌐 Live Demo
+
+- **Frontend**: [https://expense-tracker-client-diproyf87-1026s-projects.vercel.app/](https://expense-tracker-client-diproyf87-1026s-projects.vercel.app?_vercel_share=JNougBR8cPt4ulsEmjrvK57bxcAXdP5Q)
+- **Backend API**: [https://expense-tracker-server-production-c801.up.railway.app/health](https://expense-tracker-server-production-c801.up.railway.app/health)
+
+## Screenshots
+
+![dashboard](.github/assets/dashboard.png)
+
+![add-expense](.github/assets/image-3.png)
+
+![transaction](.github/assets/image-1.png)
+
+![Ai-insights](.github/assets/image-2.png)
+
 ## 🚀 Features
 
 ### Core Features
