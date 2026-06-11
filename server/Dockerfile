@@ -32,6 +32,10 @@ RUN npm ci --only=production
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
+# Copy Prisma schema and config for migrations (pre-deploy command)
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
 # Expose port
 EXPOSE 3000
 
