@@ -74,7 +74,11 @@ A full-stack expense tracking application that leverages **Gemini AI** to provid
 
 ```
 expense-tracker/
-├── client/                          # React Frontend
+├── docker-compose.yml              # Docker orchestration (database, backend, frontend)
+├── client/                         # React Frontend
+│   ├── Dockerfile                  # Frontend image build (Vite + Nginx)
+│   ├── .dockerignore               # Docker build exclusions
+│   ├── nginx.conf                  # Nginx configuration for SPA routing
 │   ├── src/
 │   │   ├── api/
 │   │   │   └── axios.ts            # Axios instance with interceptors
@@ -96,7 +100,9 @@ expense-tracker/
 │   │   └── App.tsx
 │   └── package.json
 │
-└── server/                          # Node.js Backend
+└── server/                         # Node.js Backend
+    ├── Dockerfile                  # Backend image build (Node + TypeScript)
+    ├── .dockerignore               # Docker build exclusions
     ├── src/
     │   ├── controller/
     │   │   ├── expense.controller.ts     # Expense CRUD + analytics
@@ -164,11 +170,69 @@ model User {
 ## 🚀 Getting Started
 
 ### Prerequisites
+
+**Option 1: Using Docker (Recommended)** ⭐
+- Docker Desktop (v20.10+)
+- Docker Compose (v1.29+)
+- Takes ~2 minutes, handles everything automatically
+
+**Option 2: Local Development**
 - Node.js (v18+)
 - PostgreSQL (v14+)
-- npm or yarn
+- Takes ~10-15 minutes, manual setup required
 
-### Backend Setup
+**Choose one approach below:**
+
+---
+
+### Option 1: Quick Start with Docker ✨ (Recommended)
+
+With Docker, everything runs with a single command - no manual setup needed!
+
+1. **Navigate to project root:**
+   ```bash
+   cd expense-tracker
+   ```
+
+2. **Create `.env` file in `server/` folder with secrets:**
+   ```env
+   JWT_SECRET=your_jwt_secret_key_here
+   JWT_REFRESH_SECRET=your_refresh_token_secret_here
+   GEMINI_API_KEY=your_gemini_api_key_here
+   ```
+
+3. **Start everything:**
+   ```bash
+   docker-compose up --build
+   ```
+   Docker automatically:
+   - Installs all dependencies
+   - Sets up PostgreSQL database
+   - Runs database migrations
+   - Starts backend and frontend
+
+4. **Access the application:**
+   - **Frontend**: http://localhost (Nginx on port 80, implicit in URL)
+   - **Backend API**: http://localhost:3000
+   - **Database**: localhost:5433
+   
+   > Note: These URLs are for Docker only. When running locally with `npm run dev`, frontend runs on `http://localhost:5173`
+
+5. **Useful commands:**
+   ```bash
+   docker-compose logs -f        # View logs
+   docker-compose down           # Stop services
+   docker-compose down -v        # Stop and reset database
+   docker-compose build --no-cache # Rebuild images
+   ```
+
+---
+
+### Option 2: Local Development Setup
+
+For developers who prefer running services locally without Docker.
+
+#### Backend Setup
 
 1. **Navigate to server directory:**
    ```bash
@@ -200,7 +264,7 @@ model User {
 
    Server runs on `http://localhost:3000`
 
-### Frontend Setup
+#### Frontend Setup
 
 1. **Navigate to client directory:**
    ```bash
@@ -212,7 +276,7 @@ model User {
    npm install
    ```
 
-3. **Configure API endpoint** (`.env` or update `api/axios.ts`):
+3. **Configure API endpoint** (`.env`):
    ```env
    VITE_API_URL=http://localhost:3000/api
    ```
@@ -224,8 +288,55 @@ model User {
 
    App runs on `http://localhost:5173`
 
+---
 
-## 🔐 Authentication Flow
+## 🐳 Docker Configuration
+
+The project includes complete Docker setup for containerized deployment and development.
+
+### Quick Comparison: Docker vs Local
+
+| Component | Docker | Local Dev |
+|-----------|--------|-----------|
+| **Frontend** | http://localhost (port 80) | http://localhost:5173 |
+| **Backend** | http://localhost:3000 | http://localhost:3000 |
+| **Database** | localhost:5433 | localhost:5432 |
+| **Setup Time** | ~2 minutes | ~10-15 minutes |
+| **Dependencies** | Docker only | Node.js + PostgreSQL |
+
+### Docker Files Overview
+
+- **`docker-compose.yml`** - Orchestrates three services:
+  - **PostgreSQL Database** (port 5433)
+  - **Express Backend** (port 3000)
+  - **React Frontend** (port 80)
+
+- **`server/Dockerfile`** - Multi-stage build for Node.js backend
+  - Builds TypeScript with Prisma client generation
+  - Optimized production image with health checks
+  - Automatically runs database migrations
+
+- **`client/Dockerfile`** - Multi-stage build for React frontend
+  - Builds with Vite
+  - Serves via Nginx with SPA routing support
+  - Optimized asset caching
+
+### Services Communication
+
+Services communicate via Docker's internal network:
+- **Frontend** → **Backend**: `http://backend:3000`
+- **Backend** → **Database**: `postgresql://postgres:admin@postgres:5432`
+
+### Environment Variables in Docker
+
+The docker-compose automatically sets:
+- `NODE_ENV=production`
+- `DATABASE_URL=postgresql://postgres:admin@postgres:5432/expense_tracker`
+- `VITE_API_URL=http://backend:3000` (frontend only)
+
+Secret variables (JWT, Gemini API key) should be in `server/.env`
+
+---
 
 1. **Register**: User creates account with email and password
 2. **Login**: Credentials validated, JWT token issued
