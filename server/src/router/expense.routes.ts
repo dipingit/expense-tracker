@@ -1,8 +1,8 @@
 import express from 'express';
-import { createExpense, deleteExpense, getAllExpenses, getExpenseByID, updateExpense, getDashboardSummary, getYearlySummary } from '../controller/expense.controller';
+import { checkExpenseOutlier, createExpense, deleteExpense, getAllExpenses, getExpenseByID, updateExpense, getDashboardSummary, getYearlySummary } from '../controller/expense.controller';
 import { getAIInsights } from '../controller/ai.controller';
 import { validateRequest } from '../middleware/validation.middleware';
-import { createExpenseSchema, getExpenseByIDSchema, updateExpenseSchema } from '../utils/validation.schemas';
+import { createExpenseSchema, getExpenseByIDSchema, outlierCheckSchema, updateExpenseSchema } from '../utils/validation.schemas';
 import { protect, validateBearerFormat } from '../middleware/auth.middleware';
 
 
@@ -13,6 +13,9 @@ router.post('/expenses', validateBearerFormat, protect, validateRequest(createEx
 
 //get all expenses with pagination
 router.get('/expenses', validateBearerFormat, protect, getAllExpenses);
+
+//check if expense amount is an outlier for the category
+router.get('/expenses/outlier-check', validateBearerFormat, protect, validateRequest(outlierCheckSchema), checkExpenseOutlier);
 
 //get expense by ID
 router.get('/expenses/:id', validateBearerFormat, protect, validateRequest(getExpenseByIDSchema), getExpenseByID);

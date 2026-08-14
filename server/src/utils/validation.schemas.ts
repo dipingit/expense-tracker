@@ -69,4 +69,15 @@ export const getExpenseByIDSchema = z.object({
     }),
 });
 
+export const outlierCheckSchema = z.object({
+    query: z.object({
+        amount: z.string().refine((val) => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
+            message: 'Amount must be a positive number',
+        }),
+        categoryId: z.string().refine((val) => !isNaN(parseInt(val)) && parseInt(val) >= 1, {
+            message: 'Category ID must be a valid number',
+        }),
+    }),
+});
+
 export type createExpenseSchema = z.infer<typeof createExpenseSchema>;

@@ -1,5 +1,10 @@
 import {Request, Response} from 'express';
 import {prisma} from '../prisma';
+import {
+    checkAmountOutlier,
+    computeSpendingStats,
+    getCategorySpendingHistory,
+} from '../utils/spending.utils';
 
 //Create - Add a new expense
 export const createExpense = async(req: Request, res: Response) => {
@@ -292,3 +297,35 @@ export const getYearlySummary = async(req: Request, res: Response) => {
         res.status(500).json({error: error.message});
     }
 }
+// check expense amount outlier or not for a particular category
+export const checkExpenseOutlier = async (req: Request, res: Response) => {
+    try {
+        const userId = req.userId;
+        if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const amountParam = Array.isArray(req.query.amount)
+            ? (req.query.amount[0] as string)
+            : (req.query.amount as string);
+        const categoryIdParam = Array.isArray(req.query.categoryId)
+            ? (req.query.categoryId[0] as string)
+            : (req.query.categoryId as string);
+
+        const amount = parseFloat(amountParam);
+        const categoryId = parseInt(categoryIdParam);
+
+        const category = await prisma.category.findUnique({
+            where: { id: categoryId },
+        });
+        if (!category) {
+            return res.status(404).json({ error: 'Category not found' });
+        }
+
+        const history = await getCategorySpendingHistory(userId, categoryId);
+        const stats = computeSpendingStats(history.map((expense) => Number(expense.amount)));
+        const result = checkAmountOutlier(amount, stats, category.name);
+
+        res.status(200).json({ data: result });
+    } catch (error: any) {
+        res.status(500).json({ error: error.message });
+    }
+};
