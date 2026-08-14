@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { X, Lightbulb } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { X, Lightbulb, AlertTriangle } from "lucide-react";
 import api from "../api/axios";
 import { toast } from "react-toastify";
 import { suggestCategory } from "../utils/categorySuggestion";
@@ -15,6 +15,17 @@ interface Category {
   name: string;
 }
 
+interface OutlierStats {
+  average: number;
+  highest: number;
+  count: number;
+}
+
+interface OutlierWarning {
+  message: string;
+  stats: OutlierStats;
+}
+
 const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalProps) => {
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
@@ -23,19 +34,22 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
+  const [outlierWarning, setOutlierWarning] = useState<OutlierWarning | null>(null);
+  const [checkingOutlier, setCheckingOutlier] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isOpen) {
       fetchCategories();
+    } else {
+      setOutlierWarning(null);
     }
   }, [isOpen]);
 
   useEffect(() => {
-    // Suggest category based on description
     const suggested = suggestCategory(description, categories);
     setSuggestedCategory(suggested);
 
-    // Auto-select suggested category
     if (suggested) {
       const suggestedCat = categories.find(cat => cat.name === suggested);
       if (suggestedCat) {
@@ -43,6 +57,28 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
       }
     }
   }, [description, categories]);
+
+  useEffect(() => {
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    const parsedAmount = parseFloat(amount);
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0 || !categoryId) {
+      setOutlierWarning(null);
+      return;
+    }
+
+    debounceRef.current = setTimeout(() => {
+      checkOutlier(parsedAmount, categoryId);
+    }, 400);
+
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, [amount, categoryId]);
 
   const fetchCategories = async () => {
     try {
@@ -53,6 +89,27 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
       }
     } catch (err) {
       console.error("Failed to fetch categories:", err);
+    }
+  };
+
+  const checkOutlier = async (parsedAmount: number, selectedCategoryId: number) => {
+    setCheckingOutlier(true);
+    try {
+      const response = await api.get("/expenses/outlier-check", {
+        params: { amount: parsedAmount, categoryId: selectedCategoryId },
+      });
+
+      const { isOutlier, message, stats } = response.data.data;
+      if (isOutlier && message && stats) {
+        setOutlierWarning({ message, stats });
+      } else {
+        setOutlierWarning(null);
+      }
+    } catch (err) {
+      console.error("Failed to check outlier:", err);
+      setOutlierWarning(null);
+    } finally {
+      setCheckingOutlier(false);
     }
   };
 
@@ -74,18 +131,16 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
         categoryId: categoryId,
       });
 
-      // Show success toast
       toast.success("Expense Added Successfully!");
 
-      // Reset form
       setDescription("");
       setAmount("");
       setSuggestedCategory(null);
+      setOutlierWarning(null);
       if (categories.length > 0) {
         setCategoryId(categories[0].id);
       }
       
-      // Notify parent to refresh data
       onExpenseAdded?.();
       onClose();
     } catch (err: any) {
@@ -96,11 +151,12 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
     }
   };
 
+  const selectedCategoryName = categories.find(cat => cat.id === categoryId)?.name;
+
   return (
     <>
       <dialog className={`modal ${isOpen ? "modal-open" : ""}`}>
         <div className="modal-box rounded-2xl max-w-md">
-          {/* Header */}
           <div className="flex items-center justify-between mb-6">
             <h3 className="font-bold text-xl text-base-content">Add Expense</h3>
             <button 
@@ -115,6 +171,18 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
           {error && (
             <div className="alert alert-error mb-4">
               <span>{error}</span>
+            </div>
+          )}
+
+          {outlierWarning && (
+            <div className="alert alert-warning mb-4">
+              <AlertTriangle size={18} />
+              <div>
+                <p className="font-medium">{outlierWarning.message}</p>
+                <p className="text-sm mt-1 opacity-80">
+                  Your usual {selectedCategoryName?.toLowerCase()} spending: avg ${outlierWarning.stats.average.toFixed(2)}, highest ${outlierWarning.stats.highest.toFixed(2)}
+                </p>
+              </div>
             </div>
           )}
 
@@ -137,6 +205,9 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
             <div className="form-control">
               <label className="label">
                 <span className="label-text font-semibold">Amount ($)</span>
+                {checkingOutlier && (
+                  <span className="label-text-alt text-xs opacity-60">Checking...</span>
+                )}
               </label>
               <input
                 type="number"
@@ -145,7 +216,7 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
                 placeholder="0.00"
                 min="0.01"
                 step="0.01"
-                className="input input-bordered w-full"
+                className={`input input-bordered w-full ${outlierWarning ? "input-warning" : ""}`}
                 required
                 disabled={loading}
               />
@@ -191,12 +262,11 @@ const AddExpenseModal = ({ isOpen, onClose, onExpenseAdded }: AddExpenseModalPro
                 className="btn btn-primary flex-1"
                 disabled={loading}
               >
-                {loading ? "Adding..." : "Add Expense"}
+                {loading ? "Adding..." : outlierWarning ? "Add Anyway" : "Add Expense"}
               </button>
             </div>
           </form>
         </div>
-        {/* Backdrop */}
         <div className="modal-backdrop" onClick={onClose} />
       </dialog>
     </>

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import api from "../api/axios";
 import { getCategoryIcon, getCategoryColor } from "../constants/categoryIcons";
-import { Edit2, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
+import { Edit2, Trash2, ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
 import { toast } from "react-toastify";
 
 interface Expense{
@@ -24,6 +24,17 @@ interface PaginationMeta {
     totalPages: number
 }
 
+interface OutlierStats {
+    average: number;
+    highest: number;
+    count: number;
+}
+
+interface OutlierWarning {
+    message: string;
+    stats: OutlierStats;
+}
+
 interface TransactionListProps {
     refreshTrigger?: number;
 }
@@ -35,6 +46,9 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
     const [error, setError] = useState('');
     const [editingId, setEditingId] = useState<number | null>(null);
     const [editForm, setEditForm] = useState({ description: '', amount: '', categoryId: 0 });
+    const [outlierWarning, setOutlierWarning] = useState<OutlierWarning | null>(null);
+    const [checkingOutlier, setCheckingOutlier] = useState(false);
+    const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
     const [pagination, setPagination] = useState<PaginationMeta>({
         page: 1,
@@ -75,6 +89,54 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
         }
     };
 
+    const checkOutlier = async (parsedAmount: number, selectedCategoryId: number) => {
+        setCheckingOutlier(true);
+        try {
+            const response = await api.get("/expenses/outlier-check", {
+                params: { amount: parsedAmount, categoryId: selectedCategoryId },
+            });
+
+            const { isOutlier, message, stats } = response.data.data;
+            if (isOutlier && message && stats) {
+                setOutlierWarning({ message, stats });
+            } else {
+                setOutlierWarning(null);
+            }
+        } catch (err) {
+            console.error("Failed to check outlier:", err);
+            setOutlierWarning(null);
+        } finally {
+            setCheckingOutlier(false);
+        }
+    };
+
+    useEffect(() => {
+        if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+        }
+
+        if (editingId === null) {
+            setOutlierWarning(null);
+            return;
+        }
+
+        const parsedAmount = parseFloat(editForm.amount);
+        if (!editForm.amount || isNaN(parsedAmount) || parsedAmount <= 0 || editForm.categoryId === 0) {
+            setOutlierWarning(null);
+            return;
+        }
+
+        debounceRef.current = setTimeout(() => {
+            checkOutlier(parsedAmount, editForm.categoryId);
+        }, 400);
+
+        return () => {
+            if (debounceRef.current) {
+                clearTimeout(debounceRef.current);
+            }
+        };
+    }, [editForm.amount, editForm.categoryId, editingId]);
+
     const handleEditStart = (expense: Expense) => {
         setEditingId(expense.id);
         setEditForm({ 
@@ -82,11 +144,13 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
             amount: String(expense.amount),
             categoryId: expense.category.id || 0
         });
+        setOutlierWarning(null);
     };
 
     const handleEditCancel = () => {
         setEditingId(null);
         setEditForm({ description: '', amount: '', categoryId: 0 });
+        setOutlierWarning(null);
     };
 
     const handleEditSave = async(id: number) => {
@@ -105,6 +169,7 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
             ));
             setEditingId(null);
             setEditForm({ description: '', amount: '', categoryId: 0 });
+            setOutlierWarning(null);
             toast.success("Transaction updated successfully!");
         }catch(error: any){
             setError(error?.response?.data?.message || 'Failed to update expense');
@@ -150,14 +215,19 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
                                         placeholder="Description"
                                         className="input input-sm input-bordered"
                                     />
-                                    <input
-                                        type="number"
-                                        value={editForm.amount}
-                                        onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
-                                        placeholder="Amount"
-                                        className="input input-sm input-bordered"
-                                        step="0.01"
-                                    />
+                                    <div className="flex items-center gap-2">
+                                        <input
+                                            type="number"
+                                            value={editForm.amount}
+                                            onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
+                                            placeholder="Amount"
+                                            className={`input input-sm input-bordered flex-1 ${outlierWarning ? "input-warning" : ""}`}
+                                            step="0.01"
+                                        />
+                                        {checkingOutlier && (
+                                            <span className="text-xs opacity-60 whitespace-nowrap">Checking...</span>
+                                        )}
+                                    </div>
                                     <select
                                         value={editForm.categoryId}
                                         onChange={(e) => setEditForm({...editForm, categoryId: Number(e.target.value)})}
@@ -168,6 +238,17 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
                                             <option key={cat.id} value={cat.id}>{cat.name}</option>
                                         ))}
                                     </select>
+                                    {outlierWarning && (
+                                        <div className="alert alert-warning py-2 px-3 text-xs">
+                                            <AlertTriangle size={14} className="flex-shrink-0" />
+                                            <div>
+                                                <p className="font-medium">{outlierWarning.message}</p>
+                                                <p className="mt-0.5 opacity-80">
+                                                    Your usual spending: avg ${outlierWarning.stats.average.toFixed(2)}, highest ${outlierWarning.stats.highest.toFixed(2)}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
                                 <div>
@@ -189,7 +270,7 @@ const TransactionList = ({ refreshTrigger = 0 }: TransactionListProps) => {
                                         onClick={() => handleEditSave(item.id)}
                                         className="btn btn-sm btn-success text-white"
                                     >
-                                        Save
+                                        {outlierWarning ? "Save Anyway" : "Save"}
                                     </button>
                                     <button 
                                         onClick={handleEditCancel}
